@@ -8,7 +8,7 @@ library(lubridate)
 library(ggplot2)
 
 # List files.
-dive_files <- paste("data/", list.files("data", pattern = glob2rx("*.xml"),  recursive=TRUE), sep = "")
+dive_files <- paste("data/2023/", list.files("data/2023/", pattern = glob2rx("*.xml"),  recursive=TRUE), sep = "")
 
 # Load data.
 dive_xml_list <- lapply(dive_files, xmlParse)
@@ -33,9 +33,6 @@ tibble(
            date_lub = ymd_hms(date),
            date_min = round_date(date_lub, "minute"),
            date_day = round_date(date_lub, "day"))
-    # separate(col = date, into = c("date", "tod"), sep = "T", remove = TRUE) %>% 
-    # mutate(date_lub = ymd(date),
-    #        tod_lub  = hms(tod)) 
 }
 
 # Run function through list.
@@ -69,25 +66,36 @@ chrono_df <- dive_info_clean_df %>%
 # Join with data.
 dive_info_clean_df <- left_join(dive_info_clean_df, chrono_df)
 
-# Chronology plot.
+# Basic chronology plot.
 dive_info_clean_df %>% 
   distinct(chrono_id, max_depth_minus, .keep_all = TRUE) %>%
   ggplot(data = .) +
   geom_segment(mapping = aes(x = chrono_id, xend = chrono_id,
                              y = 0, yend = max_depth_minus)) +
-  geom_point  (mapping = aes(x = chrono_id, y = max_depth_minus))
+  geom_point  (mapping = aes(x = chrono_id, y = max_depth_minus)) +
+  theme_bw() +
+  labs(x = "dive number (chronological)", y = "depth (metres)") 
 
-dive_info_clean_df %>% 
-  ggplot(data = .) +
-  geom_line(mapping = aes(x = chrono_id, y = depth_minus, group = chrono_id,
-                          colour = depth_minus), size = 2) +
+# Add incremental steps to the max_depths.
+dive_sequence_df <- dive_info_clean_df %>% 
+  mutate(depth_sequence = sapply(dive_info_clean_df$max_depth, function(x)seq(0, x, by = 0.5))) %>%
+  select(chrono_id, depth_sequence) %>% 
+  mutate(depth_sequence = as.character(depth_sequence),
+         depth_sequence = str_sub(depth_sequence, 3, -2)) %>% 
+  separate_rows(depth_sequence, sep = ",") %>% 
+  mutate(depth_sequence = -1*as.numeric(trimws(depth_sequence)))
+
+# Plot the dequence graph.
+ggplot(data = dive_sequence_df) +
+  geom_line(mapping = aes(x = chrono_id, y = depth_sequence, group = chrono_id,
+                          colour = depth_sequence), size = 2) +
   scale_colour_viridis_c() +
   theme_bw() +
-  theme(legend.position = "none")
-
+  labs(x = "dive number (chronological)", y = "depth (metres)") +
+  theme(legend.position = "none") 
 
 # Distribution handling.
-dist_gg <- dive_info_clean_df %>% 
+dive_info_clean_df %>% 
   select(dive_id, duration, max_depth, temp) %>% 
   distinct() %>% 
   rename(`Duration (mins)` = duration,
@@ -99,10 +107,3 @@ dist_gg <- dive_info_clean_df %>%
   facet_wrap(~stat, scales = "free") +
   theme_bw() +
   labs(x = NULL, y = NULL)
-
-# Arrange.
-ggdraw(dives_gg) +
-  draw_plot(dist_gg, height = 0.25, width = 0.5, x = 0.48, y = 0.08)
-
-
-  
