@@ -122,7 +122,7 @@ ggplot() +
 # Save.
 ggsave("visuals/improved_chronology.png", height = 16, width = 20, unit = "cm", dpi = 300)
 
-W# Distribution handling and plot.
+# Distribution handling and plot.
 dive_info_clean_df %>% 
   select(dive_id, duration, max_depth, temp) %>% 
   distinct() %>% 
