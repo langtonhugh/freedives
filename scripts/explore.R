@@ -92,7 +92,6 @@ dive_info_clean_df %>%
 # Save.
 ggsave("visuals/basic_chronology.png", height = 16, width = 20, unit = "cm", dpi = 300)
 
-
 # Add incremental steps to the max_depths.
 dive_sequence_df <- dive_info_clean_df %>% 
   mutate(depth_sequence = sapply(dive_info_clean_df$max_depth, function(x)seq(0, x, by = 0.5))) %>%
