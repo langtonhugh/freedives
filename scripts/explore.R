@@ -12,8 +12,8 @@ dive_files <- paste("data/2023/", list.files("data/2023/", pattern = glob2rx("*.
 # Load data.
 dive_xml_list <- lapply(dive_files, xmlParse)
 
-# Parse into a list of df.
-dive_df_list <- lapply(dive_xml_list, xmlToList)
+# Parse into a list of lists.
+dive_list <- lapply(dive_xml_list, xmlToList)
 
 # Function pull out relevant information.
 pull_fun <- function(x){
@@ -35,10 +35,13 @@ tibble(
 }
 
 # Run function through list.
-dive_info_list <- lapply(dive_df_list, pull_fun)
+dive_df_list <- lapply(dive_list, pull_fun)
 
 # Bind together.
-dive_info_df <- bind_rows(dive_info_list, .id = "dive_id")
+dive_info_df <- bind_rows(dive_df_list, .id = "dive_id")
+
+# Save this so we can show it later on if needed.
+readr::write_csv(x = dive_info_df, file = "output/dive_info.csv")
 
 # Remove SCUBA dives, and likely safety-buddy dives.
 dive_info_clean_df <- dive_info_df %>%
