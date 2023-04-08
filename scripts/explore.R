@@ -40,6 +40,10 @@ dive_df_list <- lapply(dive_list, pull_fun)
 # Bind together.
 dive_info_df <- bind_rows(dive_df_list, .id = "dive_id")
 
+# Order by id and time.
+dive_info_df <- dive_info_df %>% 
+  arrange(dive_id, time)
+
 # Save this so we can show it later on if needed.
 readr::write_csv(x = dive_info_df, file = "output/dive_info.csv")
 
@@ -104,19 +108,19 @@ dive_sequence_df <- dive_info_clean_df %>%
   separate_rows(depth_sequence, sep = ",") %>% 
   mutate(depth_sequence = -1*as.numeric(trimws(depth_sequence)))
 
-# Plot the sequence graph.
+# Identify the max depth for each chrono id.
 max_depth_chrono_df <- dive_sequence_df %>% 
   group_by(chrono_id) %>% 
   summarise(max_depth_minus = min(depth_sequence))
 
+# Plot the sequence graph again.
 ggplot() +
   geom_line(data = dive_sequence_df, mapping = aes(x = chrono_id, y = depth_sequence, group = chrono_id,
                           colour = depth_sequence), size = 2) +
   geom_point(data = max_depth_chrono_df,
-             mapping = aes(x = chrono_id, y = max_depth_minus, 
+             mapping = aes(x = chrono_id, y = max_depth_minus,
                            colour = max_depth_minus), size = 3) +
   geom_hline(yintercept = 0, linetype = "dotted") +
-  # geom_hline(yintercept = 0) +
   scale_colour_viridis_c() +
   theme_bw() +
   labs(x = "Dive number (chronological)", y = "Depth (metres)") +
