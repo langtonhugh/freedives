@@ -40,9 +40,9 @@ dive_df_list <- lapply(dive_list, pull_fun)
 # Bind together.
 dive_info_df <- bind_rows(dive_df_list, .id = "dive_id")
 
-# Order by id and time.
-dive_info_df <- dive_info_df %>% 
-  arrange(dive_id, time)
+# # Order by id and time.
+dive_info_df <- dive_info_df %>%
+  arrange(time)
 
 # Save this so we can show it later on if needed.
 readr::write_csv(x = dive_info_df, file = "output/dive_info.csv")
