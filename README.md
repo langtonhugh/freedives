@@ -1,2 +1,2 @@
 # freedives
- Freedive data project
+Mini-project on visualising data from my freedive watch.
